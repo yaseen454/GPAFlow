@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPAFlow</title>
+    <link rel="icon" type="image/png" href="https://placehold.co/32x32/4f46e5/ffffff?text=G">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="loading-overlay" class="hidden">
+        <div class="spinner"></div>
+        <p>Calculating... This might take a moment.</p>
+    </div>
+
+    <div class="container">
+        <nav>
+            <div class="nav-left">
+                <div class="logo">GPAFlow</div>
+                <div class="tabs">
+                    <button class="tab-link active" data-tab="home">Home</button>
+                    <button class="tab-link" data-tab="info">Info & Usage</button>
+                </div>
+            </div>
+            <a href="https://github.com/yaseen454" target="_blank" rel="noopener noreferrer" class="github-link" aria-label="GitHub Repository">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="github-logo">
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.67.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+                </svg>
+            </a>
+        </nav>
+
+        <header>
+            <h1>GPAFlow</h1>
+            <p>Add your past courses, manage semesters, and predict your future GPA based on different scenarios.</p>
+        </header>
+
+        <div id="message-box" class="hidden"></div>
+
+        <div id="home-tab-content" class="tab-content active">
+            <main class="grid-container">
+                <!-- Left Column -->
+                <div class="grid-item">
+                    <section id="course-input-section" class="card">
+                        <h2>1. Add Past Courses</h2>
+
+                        <div class="form-group-toggle">
+                            <input type="checkbox" id="semester-data-toggle">
+                            <label for="semester-data-toggle">Consider Semester Data</label>
+                        </div>
+
+                        <div id="semester-options" class="hidden">
+                            <div class="form-group">
+                                <label for="total-semesters">Total Semesters in Data</label>
+                                <input type="number" id="total-semesters" value="8" min="1">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="csv-upload" class="file-upload-label">Upload CSV File</label>
+                            <input type="file" id="csv-upload" accept=".csv" class="file-upload-input">
+                            <p id="csv-info" class="info small">CSV must have headers: 'Grade', 'Count', 'Hours/Course'.</p>
+                        </div>
+
+                        <div class="manual-entry">
+                            <h3>Or Add Manually</h3>
+                            <div id="manual-semester-input-group" class="form-group hidden">
+                                <label for="manual-semester">Semester Number</label>
+                                <input type="number" id="manual-semester" value="1" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="grade-select">Grade</label>
+                                <select id="grade-select">
+                                    <option value="A">A</option><option value="A-">A-</option><option value="B+">B+</option><option value="B">B</option><option value="B-">B-</option><option value="C+">C+</option><option value="C">C</option><option value="C-">C-</option><option value="D+">D+</option><option value="D">D</option><option value="F">F</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="course-count">Number of Courses</label>
+                                <input type="number" id="course-count" value="1" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="course-hours">Credit Hours per Course</label>
+                                <input type="number" id="course-hours" value="3" min="0" max="3">
+                            </div>
+                            <button id="add-course-btn">Add Courses</button>
+                        </div>
+
+                        <h3>Course Summary</h3>
+                        <div class="table-container">
+                            <table id="course-summary-table">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="grade">Grade <span class="sort-icon"></span></th>
+                                        <th data-sort="count">Count <span class="sort-icon"></span></th>
+                                        <th data-sort="hours">Hours/Course <span class="sort-icon"></span></th>
+                                        <th data-sort="semester" class="hidden">Semester <span class="sort-icon"></span></th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="table-actions">
+                            <button id="add-row-btn">Add Course</button>
+                            <button id="clear-courses-btn" class="danger">Clear All Courses</button>
+                        </div>
+                    </section>
+                </div>
+                <!-- Right Column -->
+                <div class="grid-item">
+                    <section id="gpa-analysis-section" class="card">
+                        <h2>2. Current Standing</h2>
+                        <div class="stats-grid">
+                            <div class="stat-item"><span class="stat-title">Cumulative GPA</span><span id="current-gpa" class="stat-value">0.0000</span></div>
+                            <div class="stat-item"><span class="stat-title">Total Courses</span><span id="total-courses" class="stat-value">0</span></div>
+                            <div class="stat-item"><span class="stat-title">Total Hours</span><span id="total-hours" class="stat-value">0</span></div>
+                        </div>
+                        <div id="progression-view">
+                            <h3>Overall Progression</h3>
+                            <div class="settings-grid">
+                                <div class="form-group"><label for="max-grad-hours">Max Graduation Hours</label><input type="number" id="max-grad-hours" value="140" min="1"></div>
+                                <div class="form-group"><label for="max-course-hours">Max Hours/Course</label><input type="number" id="max-course-hours" value="3" min="1"></div>
+                            </div>
+                            <div class="progress-bar-container"><div id="progress-bar" style="width: 0%;"></div></div>
+                            <div id="progression-details">0 / 140 Hours (0.00%)</div>
+                        </div>
+                    </section>
+
+                    <section id="semester-analysis-section" class="card hidden">
+                        <h2>Semester-by-Semester Analysis</h2>
+                        <div class="chart-wrapper"><canvas id="gpa-chart"></canvas></div>
+                        <div class="table-container" id="semester-table-container">
+                            <table id="semester-gpa-table">
+                                <thead><tr><th>Semester</th><th>Semester GPA</th><th>Cumulative GPA</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section id="prediction-section" class="card">
+                        <h2>3. GPA Prediction Tool</h2>
+                        <p>Test the impact of future courses on your GPA.</p>
+                        <div class="form-group">
+                            <label for="prediction-n">Number of Future Courses (n)</label>
+                            <input type="number" id="prediction-n" value="3" min="1" max="7">
+                            <p class="info small">Note: Values above 7 are disabled to prevent performance issues.</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Credit Hours for these Courses</label>
+                            <div id="prediction-hours-inputs" class="prediction-hours-grid"></div>
+                        </div>
+                        <button id="run-prediction-btn">Run Prediction</button>
+                    </section>
+
+                    <section id="results-section" class="card hidden">
+                        <h2>Prediction Results</h2>
+                        <p id="prediction-summary"></p>
+                        <div id="prediction-filter" class="hidden">
+                            <label for="prediction-factor-slider">Filter by GPA Range Factor: <span id="prediction-factor-value">0.00</span></label>
+                            <input type="range" id="prediction-factor-slider" min="0" max="0.9" step="0.01" value="0">
+                        </div>
+                        <div class="table-container">
+                            <table id="prediction-results-table">
+                                <thead><tr><th>GPA Range</th><th>Likelihood</th><th class="viz-col">Visualization</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+
+        <div id="info-tab-content" class="tab-content hidden">
+             <div class="card info-card">
+                <h2>Welcome to GPAFlow!</h2>
+                <p>This tool is designed to help you accurately track, analyze, and predict your Grade Point Average (GPA). Below is a detailed guide on how to use each feature of the application.</p>
+
+                <h3>Section 1: Add Past Courses</h3>
+                <p>This is where you input all your historical course data. You have two options: uploading a CSV file or adding courses manually.</p>
+                <ul>
+                    <li><strong>Consider Semester Data:</strong> Toggle this option if you want to track your GPA on a semester-by-semester basis. When enabled, you'll need to provide a semester number for each course entry.</li>
+                    <li><strong>Upload CSV File:</strong> For bulk data entry. Your CSV file must contain specific headers.
+                        <ul>
+                           <li>If 'Consider Semester Data' is OFF, the headers must be: <code>Grade,Count,Hours/Course</code></li>
+                           <li>If 'Consider Semester Data' is ON, the headers must be: <code>Grade,Count,Hours/Course,Semester</code></li>
+                        </ul>
+                        The app will validate the file and show an error if the format is incorrect.
+                    </li>
+                    <li><strong>Or Add Manually:</strong> Use the form to add groups of courses with the same grade and credit hours.</li>
+                    <li><strong>Course Summary Table:</strong> This table displays all the data you've entered.
+                        <ul>
+                            <li><strong>Sorting:</strong> Click on the column headers (Grade, Count, etc.) to sort the data in ascending or descending order.</li>
+                            <li><strong>Editing:</strong> Click the 'Edit' button on any row to modify its data directly in the table. Click 'Save' to confirm or 'Cancel' to discard changes.</li>
+                            <li><strong>Deleting:</strong> Click 'Remove' to delete a specific row.</li>
+                            <li><strong>Adding:</strong> Click 'Add Course' below the table to add a new, editable row.</li>
+                            <li><strong>Clear All:</strong> Use the 'Clear All Courses' button to reset all entered data.</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h3>Section 2: Current Standing</h3>
+                <p>This section provides a real-time snapshot of your academic progress based on the data you've entered.</p>
+                <ul>
+                    <li><strong>Cumulative GPA:</strong> Your overall GPA calculated from all courses entered.</li>
+                    <li><strong>Total Courses & Hours:</strong> A running total of the courses and credit hours you've completed.</li>
+                    <li><strong>Overall Progression:</strong> A visual representation of your progress towards graduation.
+                        <ul>
+                           <li><strong>Max Graduation Hours:</strong> Set your degree's required credit hours (e.g., 140) to track your completion percentage.</li>
+                           <li><strong>Max Hours/Course:</strong> Set the maximum credit hours a single course can have at your institution (e.g., 3 or 4). This value constrains inputs across the app to ensure data integrity.</li>
+                        </ul>
+                    </li>
+                </ul>
+                
+                <h3>Section 3: GPA Prediction Tool</h3>
+                <p>This is the core predictive feature of GPAFlow. It calculates all possible GPA outcomes based on a set of future courses.</p>
+                <ul>
+                    <li><strong>Number of Future Courses (n):</strong> Enter the number of courses you plan to take. <strong>Note:</strong> This is limited to a maximum of 7 to ensure the application runs smoothly on all devices.</li>
+                    <li><strong>Credit Hours for these Courses:</strong> For each of the 'n' future courses, specify the number of credit hours. These inputs will appear dynamically after you set the value of 'n'.</li>
+                    <li><strong>Run Prediction:</strong> Click this to start the calculation. The button will be disabled if you have not entered any past course data.</li>
+                </ul>
+
+                <h3>Prediction Results</h3>
+                <p>After running a prediction, this section will appear with a detailed analysis.</p>
+                <ul>
+                    <li><strong>Prediction Summary:</strong> Shows the total number of unique GPA outcomes calculated.</li>
+                    <li><strong>Results Table:</strong>
+                        <ul>
+                            <li><strong>GPA Range:</strong> The results are grouped into standard GPA brackets (e.g., 3.0-4.0).</li>
+                            <li><strong>Likelihood:</strong> The probability of your future cumulative GPA falling within that specific range.</li>
+                            <li><strong>Visualization:</strong> A bar graph providing a quick visual of the likelihood percentage.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Filter by GPA Range Factor:</strong> This powerful slider allows you to shift the GPA ranges. For example, if you want to see the likelihood of getting between a 3.5 and 4.0, you can adjust the factor to fine-tune the brackets shown in the table without re-running the entire simulation.</li>
+                </ul>
+
+                 <h3>Semester-by-Semester Analysis</h3>
+                <p>This section automatically appears when you enable 'Consider Semester Data' and have entered relevant course information.</p>
+                <ul>
+                    <li><strong>GPA Chart:</strong> A line graph that plots your Semester GPA and Cumulative GPA over time, allowing you to visualize trends in your academic performance.</li>
+                    <li><strong>Data Table:</strong> A table that provides the exact GPA values for each semester, corresponding to the points on the chart.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
