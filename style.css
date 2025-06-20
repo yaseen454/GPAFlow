@@ -105,7 +105,7 @@ header {
 h1 {
     font-size: 2.25rem;
     font-weight: 700;
-    color: var(--text-color); /* Changed from primary color for better contrast with nav */
+    color: var(--text-color);
 }
 
 h2 {
@@ -265,23 +265,39 @@ button.danger:hover {
 
 button:disabled,
 button:disabled:hover {
-    background-color: #9ca3af; /* gray-400 */
+    background-color: #9ca3af;
     cursor: not-allowed;
 }
 
 
-.info.small {
-    padding-top: 0.5rem;
+.info, .info.small {
+    padding: 0.5rem 0 0 0;
     font-size: 0.8rem;
     color: var(--subtle-text-color);
     background: none;
     border: none;
     margin-bottom: 0;
 }
-.manual-entry {
+
+.manual-entry, .csv-entry {
     border-top: 1px solid var(--border-color);
     padding-top: 1.5rem;
     margin-top: 1.5rem;
+}
+
+.csv-sample-container {
+    margin: 1rem 0;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border: 1px dashed var(--border-color);
+    border-radius: 0.5rem;
+    text-align: center;
+}
+
+.csv-sample-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.25rem;
 }
 
 .file-upload-input {

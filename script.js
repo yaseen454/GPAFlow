@@ -62,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- CONSTANTS & HELPERS ---
     const GPA_KEY = { "A": 4.0, "A-": 3.666, "B+": 3.333, "B": 3.0, "B-": 2.666, "C+": 2.333, "C": 2.0, "C-": 1.666, "D+": 1.333, "D": 1.0, "F": 0 };
     const ALL_GRADES = Object.keys(GPA_KEY);
+    const LOCAL_STORAGE_KEY = 'gpaFlowState';
 
     const showLoader = () => loadingOverlay.classList.remove('hidden');
     const hideLoader = () => loadingOverlay.classList.add('hidden');
@@ -73,6 +74,41 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             messageBox.classList.add('hidden');
         }, 5000);
+    };
+
+    // --- LOCAL STORAGE ---
+    const saveStateToLocalStorage = () => {
+        try {
+            const state = {
+                courseSummary,
+                isSemesterMode,
+                maxGradHours: maxGradHoursInput.value,
+                maxCourseHours: maxCourseHoursInput.value,
+                totalSemesters: totalSemestersInput.value,
+            };
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {
+            console.error("Could not save state to local storage:", e);
+        }
+    };
+
+    const loadStateFromLocalStorage = () => {
+        try {
+            const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                courseSummary = state.courseSummary || [];
+                isSemesterMode = state.isSemesterMode || false;
+                maxGradHoursInput.value = state.maxGradHours || 140;
+                maxCourseHoursInput.value = state.maxCourseHours || 3;
+                totalSemestersInput.value = state.totalSemesters || 8;
+
+                semesterDataToggle.checked = isSemesterMode;
+            }
+        } catch (e) {
+            console.error("Could not load state from local storage:", e);
+            courseSummary = []; // Reset to default if stored data is corrupt
+        }
     };
 
     // --- CORE LOGIC ---
@@ -108,16 +144,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateMaxHoursForAllInputs = () => {
         const maxHours = maxCourseHoursInput.value;
         courseHoursInput.max = maxHours;
-        // Also update any visible edit fields
         summaryTableBody.querySelectorAll('.edit-hours').forEach(input => input.max = maxHours);
-        // And prediction inputs
         predictionHoursInputsContainer.querySelectorAll('input').forEach(input => input.max = maxHours);
+        saveStateToLocalStorage();
     };
 
     const toggleSemesterMode = () => {
-        const willBeSemesterMode = semesterDataToggle.checked;
-        if (willBeSemesterMode === isSemesterMode) return;
-        isSemesterMode = willBeSemesterMode;
+        isSemesterMode = semesterDataToggle.checked;
         if (isSemesterMode) {
             courseSummary.forEach(item => { if (item.semester === undefined) item.semester = 1; });
             csvInfo.innerHTML = "CSV must have headers: 'Grade', 'Count', 'Hours/Course', 'Semester'.";
@@ -250,11 +283,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const progressPercent = maxGradHours > 0 ? Math.min((totalHours / maxGradHours) * 100, 100) : 0;
         progressBar.style.width = `${progressPercent}%`;
         progressionDetails.textContent = `${totalHours} / ${maxGradHours} Hours (${progressPercent.toFixed(2)}%)`;
-        
-        // Enable or disable the prediction button based on whether courses exist
         runPredictionBtn.disabled = allCourses.length === 0;
-
         processAndRenderSemesterAnalysis();
+        saveStateToLocalStorage();
     };
    
     const clearAllData = () => {
@@ -262,33 +293,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (gpaChart) gpaChart.destroy(); gpaChart = null;
         semesterAnalysisSection.classList.add('hidden'); resultsSection.classList.add('hidden'); predictionFilter.classList.add('hidden');
         csvUpload.value = '';
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
         renderSummaryTable();
         updateAllDisplays();
     };
 
     // --- EVENT HANDLERS ---
-    
-    // Tab switching
     tabLinks.forEach(link => {
         link.addEventListener('click', () => {
             const tab = link.dataset.tab;
-
             tabLinks.forEach(l => l.classList.remove('active'));
             link.classList.add('active');
-
-            tabContents.forEach(content => {
-                if (content.id === `${tab}-tab-content`) {
-                    content.classList.add('active');
-                    content.classList.remove('hidden');
-                } else {
-                    content.classList.remove('active');
-                    content.classList.add('hidden');
-                }
-            });
+            tabContents.forEach(content => content.id === `${tab}-tab-content` ? content.classList.remove('hidden') : content.classList.add('hidden'));
         });
     });
 
     maxCourseHoursInput.addEventListener('input', updateMaxHoursForAllInputs);
+    maxGradHoursInput.addEventListener('input', saveStateToLocalStorage);
+    totalSemestersInput.addEventListener('input', () => { manualSemesterInput.max = totalSemestersInput.value; saveStateToLocalStorage(); });
     semesterDataToggle.addEventListener('change', toggleSemesterMode);
    
     addCourseBtn.addEventListener('click', () => {
@@ -338,7 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     summaryTableHead.addEventListener('click', (e) => { const header = e.target.closest('th[data-sort]'); if (header) sortSummaryTable(header.dataset.sort); });
-    clearCoursesBtn.addEventListener('click', () => { if (confirm('Are you sure you want to clear all added courses?')) clearAllData(); });
+    clearCoursesBtn.addEventListener('click', () => { if (confirm('This will delete all course data permanently. Are you sure?')) clearAllData(); });
 
     addRowBtn.addEventListener('click', () => {
         if (currentlyEditingIndex !== null) return showMessage('Please save or cancel your current edit first.');
@@ -350,26 +372,17 @@ document.addEventListener('DOMContentLoaded', () => {
         summaryTable.parentElement.scrollTop = summaryTable.parentElement.scrollHeight;
     });
 
-    maxGradHoursInput.addEventListener('input', updateAllDisplays);
-    totalSemestersInput.addEventListener('input', () => { manualSemesterInput.max = totalSemestersInput.value; });
     predictionNInput.addEventListener('input', renderPredictionHoursInputs);
     predictionFactorSlider.addEventListener('input', (e) => renderPredictionResults(e.target.value));
 
     runPredictionBtn.addEventListener('click', () => {
         const n = parseInt(predictionNInput.value, 10);
         if (isNaN(n) || n <= 0) return showMessage('Please enter a valid number of future courses.');
-        
-        // Safeguard for performance
-        if (n > 7) {
-            return showMessage('Prediction disabled for more than 7 courses to prevent performance issues.');
-        }
-       
+        if (n > 7) return showMessage('Prediction disabled for more than 7 courses to prevent performance issues.');
         const hourInputs = [...predictionHoursInputsContainer.querySelectorAll('input')];
         const hours = hourInputs.map(input => parseInt(input.value, 10));
         const maxHours = parseInt(maxCourseHoursInput.value, 10);
-
         if (hours.some(h => isNaN(h) || h < 0 || h > maxHours)) return showMessage(`Please provide valid credit hours for all ${n} courses (0-${maxHours}).`);
-
         showLoader();
         setTimeout(() => {
             const results = subsequentCourseTest(n, hours);
@@ -420,7 +433,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             newCoursesFromCSV.push(newCourse);
         }
-        clearAllData();
+        
+        // Don't clear old data, just merge new data
         newCoursesFromCSV.forEach(newCourse => {
              const existingEntry = courseSummary.find(item => item.grade === newCourse.grade && item.hours === newCourse.hours && (!isSemesterMode || item.semester === newCourse.semester));
              if (existingEntry) existingEntry.count += newCourse.count; else courseSummary.push(newCourse);
@@ -429,9 +443,16 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- INITIALIZATION ---
+    loadStateFromLocalStorage();
     updateMaxHoursForAllInputs();
     renderPredictionHoursInputs();
-    renderSummaryTable();
+    sortSummaryTable(currentSort.column); // Sorts and renders
     updateSortIcons();
     updateAllDisplays();
+    
+    // Final UI setup based on loaded state
+    const loadedIsSemesterMode = semesterDataToggle.checked;
+    semesterOptions.classList.toggle('hidden', !loadedIsSemesterMode);
+    manualSemesterInputGroup.classList.toggle('hidden', !loadedIsSemesterMode);
+    summaryTable.querySelector('[data-sort="semester"]').classList.toggle('hidden', !loadedIsSemesterMode);
 });

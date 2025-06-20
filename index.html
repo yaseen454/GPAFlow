@@ -54,19 +54,14 @@
 
                         <div id="semester-options" class="hidden">
                             <div class="form-group">
-                                <label for="total-semesters">Total Semesters in Data</label>
+                                <label for="total-semesters">Total Semesters in Education Years</label>
                                 <input type="number" id="total-semesters" value="8" min="1">
+                                <p class="info small">Note: If your system uses terms (e.g., 4 years), that means you have 8 semesters in total (1 Year = 2 Semesters). Otherwise, you can consider a semester as a term.</p>
                             </div>
                         </div>
-
-                        <div class="form-group">
-                            <label for="csv-upload" class="file-upload-label">Upload CSV File</label>
-                            <input type="file" id="csv-upload" accept=".csv" class="file-upload-input">
-                            <p id="csv-info" class="info small">CSV must have headers: 'Grade', 'Count', 'Hours/Course'.</p>
-                        </div>
-
+                        
                         <div class="manual-entry">
-                            <h3>Or Add Manually</h3>
+                            <h3>Add Manually</h3>
                             <div id="manual-semester-input-group" class="form-group hidden">
                                 <label for="manual-semester">Semester Number</label>
                                 <input type="number" id="manual-semester" value="1" min="1">
@@ -86,6 +81,19 @@
                                 <input type="number" id="course-hours" value="3" min="0" max="3">
                             </div>
                             <button id="add-course-btn">Add Courses</button>
+                        </div>
+
+                        <div class="csv-entry">
+                            <h3>Or Upload a CSV File</h3>
+                            <p class="info">For faster data entry, create a CSV file with your course information. This is much quicker than adding courses manually one by one.</p>
+                            <div class="csv-sample-container">
+                                <img src="data/csv-sample.png" alt="Sample CSV format showing columns for Grade, Count, Hours/Course, and optionally Semester." class="csv-sample-image" onerror="this.onerror=null;this.src='https://placehold.co/400x100/e0e7ff/4f46e5?text=CSV+Sample+Image';">
+                            </div>
+                            <div class="form-group">
+                                <label for="csv-upload" class="file-upload-label">Upload CSV File</label>
+                                <input type="file" id="csv-upload" accept=".csv" class="file-upload-input">
+                                <p id="csv-info" class="info small">CSV must have headers: 'Grade', 'Count', 'Hours/Course'.</p>
+                            </div>
                         </div>
 
                         <h3>Course Summary</h3>
@@ -176,27 +184,27 @@
         <div id="info-tab-content" class="tab-content hidden">
              <div class="card info-card">
                 <h2>Welcome to GPAFlow!</h2>
-                <p>This tool is designed to help you accurately track, analyze, and predict your Grade Point Average (GPA). Below is a detailed guide on how to use each feature of the application.</p>
+                <p>This tool is designed to help you accurately track, analyze, and predict your Grade Point Average (GPA). Your data is automatically saved in your browser, so you can close the tab and return later without losing your progress. Below is a detailed guide on how to use each feature of the application.</p>
 
                 <h3>Section 1: Add Past Courses</h3>
-                <p>This is where you input all your historical course data. You have two options: uploading a CSV file or adding courses manually.</p>
+                <p>This is where you input all your historical course data. You have two options: adding courses manually or uploading a CSV file for a much faster experience.</p>
                 <ul>
                     <li><strong>Consider Semester Data:</strong> Toggle this option if you want to track your GPA on a semester-by-semester basis. When enabled, you'll need to provide a semester number for each course entry.</li>
-                    <li><strong>Upload CSV File:</strong> For bulk data entry. Your CSV file must contain specific headers.
+                    <li><strong>Add Manually:</strong> Use the form to add groups of courses with the same grade and credit hours.</li>
+                     <li><strong>Upload CSV File:</strong> For bulk data entry. Your CSV file must contain specific headers.
                         <ul>
                            <li>If 'Consider Semester Data' is OFF, the headers must be: <code>Grade,Count,Hours/Course</code></li>
                            <li>If 'Consider Semester Data' is ON, the headers must be: <code>Grade,Count,Hours/Course,Semester</code></li>
                         </ul>
                         The app will validate the file and show an error if the format is incorrect.
                     </li>
-                    <li><strong>Or Add Manually:</strong> Use the form to add groups of courses with the same grade and credit hours.</li>
                     <li><strong>Course Summary Table:</strong> This table displays all the data you've entered.
                         <ul>
                             <li><strong>Sorting:</strong> Click on the column headers (Grade, Count, etc.) to sort the data in ascending or descending order.</li>
                             <li><strong>Editing:</strong> Click the 'Edit' button on any row to modify its data directly in the table. Click 'Save' to confirm or 'Cancel' to discard changes.</li>
                             <li><strong>Deleting:</strong> Click 'Remove' to delete a specific row.</li>
                             <li><strong>Adding:</strong> Click 'Add Course' below the table to add a new, editable row.</li>
-                            <li><strong>Clear All:</strong> Use the 'Clear All Courses' button to reset all entered data.</li>
+                            <li><strong>Clear All:</strong> Use the 'Clear All Courses' button to reset all entered data. A confirmation will be required.</li>
                         </ul>
                     </li>
                 </ul>
